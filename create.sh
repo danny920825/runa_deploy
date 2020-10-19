@@ -1,7 +1,7 @@
 #!/bin/bash
 
-MANAGER=1
-WORKER=2
+MANAGER=2
+WORKER=4
 TIPO="t2.micro"
 AMI="ami-0bbe28eb2173f6167"
 SALIDA="instancias.txt"
@@ -72,6 +72,8 @@ echo "Subiendo los archivos..."
 
 HOST=$(grep -i lider data.txt | cut -d " " -f2)
 OPT="UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no"
-retry scp -o "${OPT}" data.txt run-stop.sh ubuntu@${HOST}:/home/ubuntu/
-retry ssh -o "${OPT}" ubuntu@${HOST} "sudo cp /home/ubuntu/run-stop.sh /data/tools/"
+retry scp -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" data.txt run-stop.sh ubuntu@${HOST}:/home/ubuntu/
+retry ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "sudo cp /home/ubuntu/run-stop.sh /data/tools/"
+retry ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(crontab -l && echo '30 7 * * * bash /data/tools/run-stop.sh start') | crontab -"
+retry ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(crontab -l && echo '00 13 * * * bash /data/tools/run-stop.sh stop') | crontab -"
 echo "Listo. Terminado con exito"
