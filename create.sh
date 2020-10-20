@@ -71,9 +71,10 @@ retry() {
 echo "Subiendo los archivos..."
 
 HOST=$(grep -i lider data.txt | cut -d " " -f2)
-OPT="UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no"
-retry scp -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" data.txt run-stop.sh ubuntu@${HOST}:/home/ubuntu/
-retry ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "sudo cp /home/ubuntu/run-stop.sh /data/tools/"
-retry ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(crontab -l && echo '30 7 * * * bash /data/tools/run-stop.sh start') | crontab -"
-retry ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(crontab -l && echo '00 13 * * * bash /data/tools/run-stop.sh stop') | crontab -"
+KEY="-i ALD.pem"
+retry scp $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" data.txt run-stop.sh ubuntu@${HOST}:/home/ubuntu/
+retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "sudo mv /home/ubuntu/data.txt /data/tools/"
+retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "sudo mv /home/ubuntu/run-stop.sh /data/tools/"
+retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(sudo echo '30 7 * * * bash /data/tools/run-stop.sh start') >> /var/spool/cron/crontabs/root"
+retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(sudo echo '00 13 * * * bash /data/tools/run-stop.sh stop') >> /var/spool/cron/crontabs/root"
 echo "Listo. Terminado con exito"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Ubicacion del archivo que contiene las instancias
-file=data.txt
+file=/data/tools/data.txt
 
 #Cantidad maxima de instancias a mantener durante el periodo bajo
 max=4
