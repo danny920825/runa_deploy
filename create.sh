@@ -1,7 +1,7 @@
 #!/bin/bash
 
-MANAGER=2
-WORKER=4
+MANAGER=1
+WORKER=1
 TIPO="t2.micro"
 AMI="ami-0bbe28eb2173f6167"
 SALIDA="instancias.txt"
@@ -71,10 +71,12 @@ retry() {
 echo "Subiendo los archivos..."
 
 HOST=$(grep -i lider data.txt | cut -d " " -f2)
-KEY="-i ALD.pem"
-retry scp $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" data.txt run-stop.sh ubuntu@${HOST}:/home/ubuntu/
-retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "sudo mv /home/ubuntu/data.txt /data/tools/"
-retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "sudo mv /home/ubuntu/run-stop.sh /data/tools/"
-retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(sudo echo '30 7 * * * bash /data/tools/run-stop.sh start') >> /var/spool/cron/crontabs/root"
-retry ssh $KEY -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "(sudo echo '00 13 * * * bash /data/tools/run-stop.sh stop') >> /var/spool/cron/crontabs/root"
-echo "Listo. Terminado con exito"
+#OPTS='-i "ALD.pem" -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no"'
+retry scp -i "ALD.pem" -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" data.txt run-stop.sh ubuntu@${HOST}:/home/ubuntu/
+CMD="sudo cp /home/ubuntu/run-stop.sh /data/tools/ && sudo crontab -l 2> /dev/null | tee /var/tmp/cron > /dev/null && echo '30 7 * * * bash /data/tools/run-stop.sh start' | sudo tee -a /var/tmp/cron > /dev/null && echo '00 13 * * * bash /data/tools/run-stop.sh stop' | sudo tee -a /var/tmp/cron > /dev/null && cat /var/tmp/cron | sudo crontab - && rm /var/tmp/cron"
+retry ssh -i "ALD.pem" -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" ubuntu@${HOST} "${CMD}"
+if [ $? -eq 0 ]; then
+  echo "Listo. Terminado con exito"
+else
+  echo "Ocurrieron errores al ejecutar los comandos remotos."
+fi
